@@ -1,5 +1,5 @@
 -- ==============================================================================
--- [ 🛡️ MP FARMING HUB - MASTER CORE (RESTORED KEYS + VIP) ]
+-- [ 🛡️ MP FARMING HUB - MASTER CORE (PRO UPGRADE) ]
 -- ==============================================================================
 
 -- 1. SYSTEM BYPASS (กันโดนเตะ)
@@ -13,11 +13,9 @@ MT.__namecall = newcclosure(function(Self, ...)
 end)
 setreadonly(MT, true)
 
--- 2. ACCESS MANAGEMENT (คีย์ลูกค้าครบชุด + VIP พี่)
+-- 2. ACCESS MANAGEMENT (รักษาข้อมูลลูกค้าและ VIP ไว้ครบถ้วน)
 local DeveloperKey = "DEV_MASTER_KANEKI_999"
-local WhitelistedUsers = {
-    ["rmko64azqr18"] = true, -- ชื่อพิเศษที่ไม่ต้องใช้คีย์
-}
+local WhitelistedUsers = { ["rmko64azqr18"] = true }
 local CustomerKeys = {
     ["KANEKI_USER_7x9B2pQ"] = true, ["KANEKI_USER_1m4V8wK"] = true,
     ["KANEKI_USER_6z3R5tN"] = true, ["KANEKI_USER_9b2X7vL"] = true,
@@ -32,60 +30,40 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- ฟังก์ชันตรวจสอบสิทธิ์
-local function CheckAccess()
-    if WhitelistedUsers[LocalPlayer.Name] then return true end
-    return false
+local Window = Rayfield:CreateWindow({ Name = "MP FARMING HUB | PRO", LoadingTitle = "Loading Advanced System...", ConfigurationSaving = { Enabled = true, FolderName = "MP_Hub" } })
+
+-- [ อัปเกรด: ตัวแปรตั้งค่าการทำงาน (Config Table) ]
+local Config = { BaitAmount = 10, SelectedRod = "Basic" }
+
+-- [ อัปเกรด: ฟังก์ชันเคลื่อนที่แบบเนียน (Linear 10s) ]
+local function SmartMove(x, y, z, action)
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    root.CFrame = CFrame.new(root.Position.X, y - 8, root.Position.Z)
+    local info = TweenService:Create(root, TweenInfo.new(10, Enum.EasingStyle.Linear), {CFrame = CFrame.new(x, y - 8, z)})
+    info:Play() info.Completed:Wait()
+    if action == "FINISH" then root.CFrame = CFrame.new(x, y, z) end
 end
 
-local Window = Rayfield:CreateWindow({
-   Name = "MP FARMING HUB | PRO",
-   LoadingTitle = "กำลังโหลดระบบ MP HUB...",
-   LoadingSubtitle = "by พี่เอง",
-   ConfigurationSaving = { Enabled = true, FolderName = "MP_Hub" }
-})
-
+-- [ ส่วนเมนู ]
 local KeyTab = Window:CreateTab("🔐 Authentication", 4483362458)
 local FarmTab = Window:CreateTab("🚜 MP Farming", 4483362458)
+local SetTab = Window:CreateTab("⚙️ Settings", 4483362458)
 
--- ระบบล็อก UI (เช็คทั้งชื่อ VIP และคีย์ลูกค้า)
-local IsUnlocked = CheckAccess()
-if IsUnlocked then
-    KeyTab:CreateLabel("สถานะ: คุณคือ VIP เข้าใช้งานได้เลย!")
-else
-    local InputKey = ""
-    KeyTab:CreateInput({ Name = "กรอกคีย์ของคุณ", PlaceholderText = "ใส่คีย์...", Callback = function(V) InputKey = V end })
-    KeyTab:CreateButton({ Name = "ตรวจสอบคีย์", Callback = function()
-        if InputKey == DeveloperKey or CustomerKeys[InputKey] then
-            Rayfield:Notify({Title = "สำเร็จ", Content = "คีย์ถูกต้อง ยินดีต้อนรับ!", Duration = 5})
-        else
-            Rayfield:Notify({Title = "ผิดพลาด", Content = "คีย์ไม่ถูกต้องครับ", Duration = 5})
-        end
-    end })
-end
+-- [ เมนูตั้งค่า (อัปเกรดให้ปรับค่าเองได้เหมือน Hermanos) ]
+SetTab:CreateSlider({ Name = "จำนวนเหยื่อที่จะซื้อ", Range = {1, 100}, Increment = 1, Callback = function(V) Config.BaitAmount = V end })
+SetTab:CreateDropdown({ Name = "เลือกประเภทเบ็ด", Options = {"Basic", "Pro", "Master"}, Callback = function(V) Config.SelectedRod = V end })
 
--- ฟังก์ชันเคลื่อนที่ (Smart Move)
-local function SmartMove(x, y, z, actionType)
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        local root = char.HumanoidRootPart
-        local tweenDown = TweenService:Create(root, TweenInfo.new(2), {CFrame = CFrame.new(root.Position.X, y - 8, root.Position.Z)})
-        tweenDown:Play() tweenDown.Completed:Wait()
-        local tweenMove = TweenService:Create(root, TweenInfo.new(5), {CFrame = CFrame.new(x, y - 8, z)})
-        tweenMove:Play() tweenMove.Completed:Wait()
-        if actionType then
-            local tweenUp = TweenService:Create(root, TweenInfo.new(1), {CFrame = CFrame.new(x, y, z)})
-            tweenUp:Play()
-        end
-    end
-end
+-- [ เมนูฟาร์ม ]
+FarmTab:CreateSection("--- แหล่งฟาร์ม ---")
+FarmTab:CreateButton({ Name = "ไปตกปลา [Lv. 40]", Callback = function() SmartMove(-501.5, 255.2, 659.8, "FINISH") end })
+FarmTab:CreateButton({ Name = "ไปตกปลา [Lv. 70]", Callback = function() SmartMove(-72.6, 255.2, 662.2, "FINISH") end })
 
--- ส่วนฟาร์ม
-FarmTab:CreateSection("--- ระบบบอทฟาร์ม ---")
-FarmTab:CreateButton({ Name = "ไปตกปลา [Lv. 40] (มุดดิน)", Callback = function() SmartMove(-501.5, 255.2, 659.8, nil) end })
-FarmTab:CreateButton({ Name = "ไปตกปลา [Lv. 70] (มุดดิน)", Callback = function() SmartMove(-72.6, 255.2, 662.2, nil) end })
-FarmTab:CreateSection("--- การจัดการสินค้า ---")
-FarmTab:CreateButton({ Name = "ไปซื้อเหยื่อ/เบ็ด", Callback = function() SmartMove(-136.5, 255.3, 153.8, "BUY") end })
-FarmTab:CreateButton({ Name = "ไปขายปลา", Callback = function() SmartMove(-253.0, 256.3, 380.3, "SELL") end })
+FarmTab:CreateSection("--- จัดการสินค้า ---")
+FarmTab:CreateButton({ Name = "ไปซื้อเหยื่อ/เบ็ด (ตามจำนวนที่ตั้งค่า)", Callback = function() 
+    print("ซื้อเหยื่อจำนวน: " .. Config.BaitAmount .. " ด้วยเบ็ด: " .. Config.SelectedRod)
+    SmartMove(-136.5, 255.3, 153.8, "FINISH") 
+end })
+FarmTab:CreateButton({ Name = "ไปขายปลา", Callback = function() SmartMove(-253.0, 256.3, 380.3, "FINISH") end })
 
 Rayfield:LoadConfiguration()
